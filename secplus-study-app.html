@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecPlus Study Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e17;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #7c3aed;
+    --green: #00ff9d;
+    --red: #ff4444;
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+    --text-muted: #94a3b8;
+    --glow: 0 0 20px rgba(0,212,255,0.3);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: 
+      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(0,212,255,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 50% at 80% 80%, rgba(124,58,237,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,14,23,0.9);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex; align-items: center; gap: 2rem;
+    height: 60px;
+  }
+  .logo {
+    font-weight: 800; font-size: 1.2rem; letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    white-space: nowrap;
+  }
+  .logo span { color: var(--accent2); -webkit-text-fill-color: var(--accent2); }
+  .nav-tabs { display: flex; gap: 0.25rem; flex: 1; }
+  .nav-tab {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-dim); font-family: 'Syne', sans-serif;
+    font-size: 0.85rem; font-weight: 600; letter-spacing: 0.5px;
+    padding: 0.4rem 1rem; border-radius: 6px;
+    transition: all 0.2s; text-transform: uppercase;
+  }
+  .nav-tab:hover { color: var(--text); background: var(--surface); }
+  .nav-tab.active { color: var(--accent); background: rgba(0,212,255,0.08); }
+  .domain-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem; color: var(--text-dim);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 0.25rem 0.75rem; border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  /* PANELS */
+  .panel { display: none; padding: 2rem; max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+  .panel.active { display: block; }
+
+  /* DASHBOARD */
+  .dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.25rem;
+    position: relative; overflow: hidden;
+  }
+  .stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+  .stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 0.5rem; }
+  .stat-val { font-size: 2rem; font-weight: 800; color: var(--accent); font-family: 'Space Mono', monospace; }
+  .stat-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+  .section-title {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px;
+    color: var(--accent); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .domain-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 2rem; }
+  .domain-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.25rem; cursor: pointer;
+    transition: all 0.2s; display: flex; align-items: center; gap: 1rem;
+  }
+  .domain-card:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: var(--glow); }
+  .domain-num {
+    font-family: 'Space Mono', monospace; font-size: 1.2rem; font-weight: 700;
+    color: var(--accent3); min-width: 2rem;
+  }
+  .domain-name { font-size: 0.9rem; font-weight: 600; }
+  .domain-pct { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.2rem; }
+  .progress-bar-wrap { height: 4px; background: var(--border); border-radius: 2px; margin-top: 0.4rem; }
+  .progress-bar { height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--accent), var(--accent3)); }
+
+  .resources-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+  .resource-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem; text-decoration: none; color: var(--text);
+    transition: all 0.2s; display: block;
+  }
+  .resource-card:hover { border-color: var(--accent2); box-shadow: 0 0 20px rgba(255,107,53,0.15); }
+  .resource-type {
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--accent2); margin-bottom: 0.4rem; font-family: 'Space Mono', monospace;
+  }
+  .resource-name { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .resource-desc { font-size: 0.75rem; color: var(--text-dim); }
+
+  /* FLASHCARDS */
+  .flashcard-controls {
+    display: flex; gap: 1rem; margin-bottom: 1.5rem; align-items: center; flex-wrap: wrap;
+  }
+  .btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); font-family: 'Syne', sans-serif; font-weight: 600;
+    font-size: 0.82rem; padding: 0.5rem 1.2rem; border-radius: 8px;
+    cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .btn.primary:hover { background: #00b8d9; }
+  .btn.danger { background: rgba(255,68,68,0.1); border-color: var(--red); color: var(--red); }
+  .btn.success { background: rgba(0,255,157,0.1); border-color: var(--green); color: var(--green); }
+
+  select {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); font-family: 'Syne', sans-serif; font-size: 0.82rem;
+    padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; outline: none;
+  }
+  select:focus { border-color: var(--accent); }
+
+  .card-arena {
+    perspective: 1200px; margin: 0 auto 1.5rem;
+    width: 100%; max-width: 680px; height: 320px;
+  }
+  .flashcard {
+    width: 100%; height: 100%;
+    position: relative; transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+    cursor: pointer;
+  }
+  .flashcard.flipped { transform: rotateY(180deg); }
+  .card-face {
+    position: absolute; inset: 0;
+    backface-visibility: hidden;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 2.5rem; text-align: center;
+    overflow: hidden;
+  }
+  .card-face::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent3), var(--accent2));
+  }
+  .card-back { transform: rotateY(180deg); border-color: var(--accent3); }
+  .card-back::before { background: linear-gradient(90deg, var(--accent3), var(--accent2)); }
+  .card-label {
+    position: absolute; top: 1rem; left: 1.25rem;
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--text-dim); font-family: 'Space Mono', monospace;
+  }
+  .card-domain {
+    position: absolute; top: 1rem; right: 1.25rem;
+    font-size: 0.65rem; font-family: 'Space Mono', monospace;
+    color: var(--accent3); background: rgba(124,58,237,0.1);
+    padding: 0.2rem 0.6rem; border-radius: 4px;
+  }
+  .card-text { font-size: 1.05rem; font-weight: 600; line-height: 1.6; }
+  .card-back .card-text { font-size: 0.95rem; font-weight: 400; color: var(--text-muted); }
+  .card-counter {
+    text-align: center; font-family: 'Space Mono', monospace;
+    font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1rem;
+  }
+  .card-actions { display: flex; gap: 1rem; justify-content: center; margin-top: 0.5rem; }
+
+  .flip-hint {
+    text-align: center; font-size: 0.75rem; color: var(--text-dim);
+    margin-bottom: 1rem; font-family: 'Space Mono', monospace;
+  }
+
+  /* Create flashcard */
+  .create-card-form {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-top: 1.5rem;
+  }
+  textarea, input[type="text"] {
+    width: 100%; background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); font-family: 'Syne', sans-serif; font-size: 0.9rem;
+    padding: 0.75rem 1rem; border-radius: 8px; outline: none;
+    transition: border-color 0.2s; resize: vertical;
+  }
+  textarea:focus, input[type="text"]:focus { border-color: var(--accent); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  .form-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 0.4rem; }
+
+  /* PRACTICE TEST */
+  .test-setup {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 2rem; max-width: 600px;
+  }
+  .test-options { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0; }
+  .test-option {
+    border: 2px solid var(--border); border-radius: 10px;
+    padding: 1rem; cursor: pointer; transition: all 0.2s; text-align: center;
+  }
+  .test-option:hover, .test-option.selected { border-color: var(--accent); background: rgba(0,212,255,0.05); }
+  .test-option-icon { font-size: 1.5rem; margin-bottom: 0.4rem; }
+  .test-option-name { font-size: 0.85rem; font-weight: 700; }
+  .test-option-desc { font-size: 0.72rem; color: var(--text-dim); margin-top: 0.2rem; }
+
+  .question-block { max-width: 700px; }
+  .question-num {
+    font-family: 'Space Mono', monospace; font-size: 0.75rem;
+    color: var(--accent); margin-bottom: 0.75rem;
+  }
+  .question-text { font-size: 1rem; font-weight: 600; line-height: 1.7; margin-bottom: 1.5rem; }
+  .answer-choices { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem; }
+  .answer-choice {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 0.9rem 1.25rem;
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: flex-start; gap: 1rem;
+    font-size: 0.9rem;
+  }
+  .answer-choice:hover { border-color: var(--accent); background: rgba(0,212,255,0.04); }
+  .answer-choice.selected { border-color: var(--accent); background: rgba(0,212,255,0.08); }
+  .answer-choice.correct { border-color: var(--green); background: rgba(0,255,157,0.07); }
+  .answer-choice.wrong { border-color: var(--red); background: rgba(255,68,68,0.07); }
+  .choice-letter {
+    font-family: 'Space Mono', monospace; font-size: 0.8rem;
+    color: var(--text-dim); min-width: 1.2rem; margin-top: 0.1rem;
+  }
+  .explanation {
+    background: rgba(124,58,237,0.07); border: 1px solid rgba(124,58,237,0.3);
+    border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1.5rem;
+    font-size: 0.875rem; line-height: 1.7; color: var(--text-muted);
+  }
+  .explanation strong { color: var(--accent3); }
+  .test-progress {
+    display: flex; gap: 0.3rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+  }
+  .test-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--border); transition: background 0.3s;
+  }
+  .test-dot.answered { background: var(--accent3); }
+  .test-dot.correct { background: var(--green); }
+  .test-dot.wrong { background: var(--red); }
+  .test-dot.current { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+
+  /* RESULTS */
+  .results-screen {
+    text-align: center; padding: 3rem 1rem;
+  }
+  .score-ring {
+    width: 160px; height: 160px; margin: 0 auto 1.5rem;
+    border-radius: 50%; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: conic-gradient(var(--green) 0%, var(--green) var(--score-pct), var(--surface2) var(--score-pct));
+    box-shadow: 0 0 40px rgba(0,255,157,0.2);
+    position: relative;
+  }
+  .score-ring::before {
+    content: ''; position: absolute; inset: 10px;
+    border-radius: 50%; background: var(--bg);
+  }
+  .score-val { position: relative; z-index: 1; font-size: 2.5rem; font-weight: 800; font-family: 'Space Mono', monospace; }
+  .score-label { position: relative; z-index: 1; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
+  .domain-breakdown { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin: 1.5rem 0; text-align: left; }
+  .breakdown-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 0.9rem;
+  }
+  .breakdown-name { font-size: 0.75rem; font-weight: 600; margin-bottom: 0.4rem; }
+  .breakdown-score { font-family: 'Space Mono', monospace; font-size: 1.1rem; font-weight: 700; }
+
+  /* AI TUTOR */
+  .ai-tutor-wrap { display: grid; grid-template-columns: 280px 1fr; gap: 1.5rem; }
+  .topic-list { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; height: fit-content; }
+  .topic-item {
+    padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer;
+    font-size: 0.82rem; transition: all 0.2s; margin-bottom: 0.25rem;
+  }
+  .topic-item:hover { background: var(--surface2); }
+  .topic-item.active { background: rgba(0,212,255,0.1); color: var(--accent); }
+  .chat-area { display: flex; flex-direction: column; height: 520px; }
+  .chat-messages {
+    flex: 1; overflow-y: auto; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 12px 12px 0 0;
+    padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem;
+  }
+  .chat-messages::-webkit-scrollbar { width: 4px; }
+  .chat-messages::-webkit-scrollbar-track { background: transparent; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .msg { max-width: 82%; }
+  .msg.user { align-self: flex-end; }
+  .msg.ai { align-self: flex-start; }
+  .msg-bubble {
+    padding: 0.75rem 1rem; border-radius: 10px;
+    font-size: 0.875rem; line-height: 1.65;
+  }
+  .msg.user .msg-bubble { background: rgba(0,212,255,0.12); border: 1px solid rgba(0,212,255,0.2); }
+  .msg.ai .msg-bubble { background: var(--surface2); border: 1px solid var(--border); }
+  .msg-name { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 0.3rem; font-family: 'Space Mono', monospace; }
+  .chat-input-row {
+    display: flex; background: var(--surface2);
+    border: 1px solid var(--border); border-top: none;
+    border-radius: 0 0 12px 12px; overflow: hidden;
+  }
+  .chat-input {
+    flex: 1; background: none; border: none; color: var(--text);
+    font-family: 'Syne', sans-serif; font-size: 0.875rem;
+    padding: 0.875rem 1rem; outline: none; resize: none;
+  }
+  .chat-send {
+    background: var(--accent); border: none; color: var(--bg);
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.8rem;
+    padding: 0 1.25rem; cursor: pointer; transition: background 0.2s; letter-spacing: 0.5px;
+  }
+  .chat-send:hover { background: #00b8d9; }
+  .loading-dots span {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); margin: 0 2px;
+    animation: bounce 1s infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.15s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes bounce { 0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)} }
+
+  /* Utility */
+  .hidden { display: none !important; }
+  .mt-1 { margin-top: 0.5rem; }
+  .mt-2 { margin-top: 1rem; }
+
+  @media (max-width: 768px) {
+    .dash-grid { grid-template-columns: repeat(2, 1fr); }
+    .domain-grid { grid-template-columns: 1fr; }
+    .resources-grid { grid-template-columns: 1fr; }
+    .ai-tutor-wrap { grid-template-columns: 1fr; }
+    .domain-breakdown { grid-template-columns: 1fr 1fr; }
+    nav { padding: 0 1rem; }
+    .panel { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">SEC<span>+</span> STUDY HUB</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchPanel('dashboard')">Dashboard</button>
+    <button class="nav-tab" onclick="switchPanel('flashcards')">Flashcards</button>
+    <button class="nav-tab" onclick="switchPanel('test')">Practice Test</button>
+    <button class="nav-tab" onclick="switchPanel('tutor')">AI Tutor</button>
+    <button class="nav-tab" onclick="switchPanel('resources')">Resources</button>
+  </div>
+  <div class="domain-badge">SY0-701</div>
+</nav>
+
+<!-- DASHBOARD -->
+<div id="panel-dashboard" class="panel active">
+  <div class="dash-grid">
+    <div class="stat-card">
+      <div class="stat-label">Flashcards Studied</div>
+      <div class="stat-val" id="stat-studied">0</div>
+      <div class="stat-sub">total reviewed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Tests Taken</div>
+      <div class="stat-val" id="stat-tests">0</div>
+      <div class="stat-sub">practice exams</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg. Test Score</div>
+      <div class="stat-val" id="stat-avg">—</div>
+      <div class="stat-sub">passing is 75%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Cards Created</div>
+      <div class="stat-val" id="stat-created">0</div>
+      <div class="stat-sub">custom + built-in</div>
+    </div>
+  </div>
+
+  <div class="section-title">Exam Domains (SY0-701)</div>
+  <div class="domain-grid">
+    <div class="domain-card" onclick="startDomainFlash(0)">
+      <div class="domain-num">1.0</div>
+      <div style="flex:1">
+        <div class="domain-name">General Security Concepts</div>
+        <div class="domain-pct">12% of exam</div>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:0%" id="prog-0"></div></div>
+      </div>
+    </div>
+    <div class="domain-card" onclick="startDomainFlash(1)">
+      <div class="domain-num">2.0</div>
+      <div style="flex:1">
+        <div class="domain-name">Threats, Vulnerabilities & Mitigations</div>
+        <div class="domain-pct">22% of exam</div>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:0%" id="prog-1"></div></div>
+      </div>
+    </div>
+    <div class="domain-card" onclick="startDomainFlash(2)">
+      <div class="domain-num">3.0</div>
+      <div style="flex:1">
+        <div class="domain-name">Security Architecture</div>
+        <div class="domain-pct">18% of exam</div>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:0%" id="prog-2"></div></div>
+      </div>
+    </div>
+    <div class="domain-card" onclick="startDomainFlash(3)">
+      <div class="domain-num">4.0</div>
+      <div style="flex:1">
+        <div class="domain-name">Security Operations</div>
+        <div class="domain-pct">28% of exam</div>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:0%" id="prog-3"></div></div>
+      </div>
+    </div>
+    <div class="domain-card" onclick="startDomainFlash(4)">
+      <div class="domain-num">5.0</div>
+      <div style="flex:1">
+        <div class="domain-name">Security Program Management</div>
+        <div class="domain-pct">20% of exam</div>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:0%" id="prog-4"></div></div>
+      </div>
+    </div>
+    <div class="domain-card" onclick="switchPanel('test')">
+      <div class="domain-num">🎯</div>
+      <div style="flex:1">
+        <div class="domain-name">Take Full Practice Exam</div>
+        <div class="domain-pct">90 questions · 90 minutes</div>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:100%; background: linear-gradient(90deg, var(--accent2), var(--accent3));"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Top Study Resources</div>
+  <div class="resources-grid">
+    <a href="https://www.comptia.org/certifications/security" target="_blank" class="resource-card">
+      <div class="resource-type">Official</div>
+      <div class="resource-name">CompTIA Security+ Page</div>
+      <div class="resource-desc">Official exam objectives, study guides, and vouchers</div>
+    </a>
+    <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-comptia-security-plus-course/" target="_blank" class="resource-card">
+      <div class="resource-type">Video Course</div>
+      <div class="resource-name">Professor Messer (Free)</div>
+      <div class="resource-desc">Free SY0-701 video course, most popular free resource</div>
+    </a>
+    <a href="https://www.reddit.com/r/CompTIA/search/?q=security%2B+study+guide" target="_blank" class="resource-card">
+      <div class="resource-type">Community</div>
+      <div class="resource-name">r/CompTIA Study Guides</div>
+      <div class="resource-desc">Community-compiled guides, tips, and pass reports</div>
+    </a>
+    <a href="https://www.youtube.com/playlist?list=PLG49S3nxzAnl4QDVqK-hOnoqcSKEIDDuv" target="_blank" class="resource-card">
+      <div class="resource-type">YouTube</div>
+      <div class="resource-name">Professor Messer YouTube</div>
+      <div class="resource-desc">Full video playlist for SY0-701</div>
+    </a>
+    <a href="https://quizlet.com/subject/security%2B-sy0-701/" target="_blank" class="resource-card">
+      <div class="resource-type">Flashcards</div>
+      <div class="resource-name">Quizlet Sec+ Decks</div>
+      <div class="resource-desc">Community flashcard sets for SY0-701</div>
+    </a>
+    <a href="https://www.examcompass.com/comptia/security-plus-certification/free-security-plus-practice-tests" target="_blank" class="resource-card">
+      <div class="resource-type">Practice Tests</div>
+      <div class="resource-name">ExamCompass (Free)</div>
+      <div class="resource-desc">Free practice tests aligned to exam objectives</div>
+    </a>
+  </div>
+</div>
+
+<!-- FLASHCARDS -->
+<div id="panel-flashcards" class="panel">
+  <div class="flashcard-controls">
+    <select id="fc-domain-filter" onchange="filterFlashcards()">
+      <option value="all">All Domains</option>
+      <option value="0">1.0 General Security Concepts</option>
+      <option value="1">2.0 Threats, Vulnerabilities & Mitigations</option>
+      <option value="2">3.0 Security Architecture</option>
+      <option value="3">4.0 Security Operations</option>
+      <option value="4">5.0 Security Program Management</option>
+    </select>
+    <button class="btn" onclick="shuffleDeck()">⟳ Shuffle</button>
+    <button class="btn" onclick="resetDeck()">↺ Reset</button>
+    <button class="btn primary" onclick="toggleCreateForm()">+ New Card</button>
+    <button class="btn" onclick="generateAICards()" id="ai-gen-btn">✦ AI Generate Cards</button>
+  </div>
+
+  <div class="card-counter" id="card-counter">Card 1 of 1</div>
+  <div class="flip-hint">Click card to flip · Use buttons to mark knowledge</div>
+
+  <div class="card-arena">
+    <div class="flashcard" id="flashcard" onclick="flipCard()">
+      <div class="card-face card-front">
+        <div class="card-label">Question</div>
+        <div class="card-domain" id="card-domain-badge">Domain 1.0</div>
+        <div class="card-text" id="card-front-text">Loading...</div>
+      </div>
+      <div class="card-face card-back">
+        <div class="card-label">Answer</div>
+        <div class="card-text" id="card-back-text">...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-actions">
+    <button class="btn danger" onclick="markCard(false)">✗ Still Learning</button>
+    <button class="btn" onclick="prevCard()">← Prev</button>
+    <button class="btn" onclick="nextCard()">Next →</button>
+    <button class="btn success" onclick="markCard(true)">✓ Got It!</button>
+  </div>
+
+  <div id="create-form" class="create-card-form hidden">
+    <div class="section-title" style="margin-bottom:1.25rem">Create Flashcard</div>
+    <div class="form-row">
+      <div>
+        <div class="form-label">Question / Term</div>
+        <textarea id="new-front" rows="3" placeholder="Enter a term, concept, or question..."></textarea>
+      </div>
+      <div>
+        <div class="form-label">Answer / Definition</div>
+        <textarea id="new-back" rows="3" placeholder="Enter the definition or answer..."></textarea>
+      </div>
+    </div>
+    <div style="display:flex;gap:1rem;align-items:center">
+      <div style="flex:1">
+        <div class="form-label">Domain</div>
+        <select id="new-domain" style="width:100%">
+          <option value="0">1.0 General Security Concepts</option>
+          <option value="1">2.0 Threats, Vulnerabilities & Mitigations</option>
+          <option value="2">3.0 Security Architecture</option>
+          <option value="3">4.0 Security Operations</option>
+          <option value="4">5.0 Security Program Management</option>
+        </select>
+      </div>
+      <div style="margin-top:1.2rem; display:flex; gap:0.75rem">
+        <button class="btn primary" onclick="saveNewCard()">Save Card</button>
+        <button class="btn" onclick="toggleCreateForm()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRACTICE TEST -->
+<div id="panel-test" class="panel">
+  <div id="test-setup-screen">
+    <div class="test-setup">
+      <div class="section-title">Configure Practice Test</div>
+      <div class="form-label mt-2" style="margin-bottom:0.75rem">Exam Mode</div>
+      <div class="test-options">
+        <div class="test-option selected" id="opt-quick" onclick="selectMode('quick')">
+          <div class="test-option-icon">⚡</div>
+          <div class="test-option-name">Quick Quiz</div>
+          <div class="test-option-desc">15 questions · 15 min</div>
+        </div>
+        <div class="test-option" id="opt-domain" onclick="selectMode('domain')">
+          <div class="test-option-icon">🎯</div>
+          <div class="test-option-name">Domain Focus</div>
+          <div class="test-option-desc">25 questions · one domain</div>
+        </div>
+        <div class="test-option" id="opt-full" onclick="selectMode('full')">
+          <div class="test-option-icon">📋</div>
+          <div class="test-option-name">Full Exam Sim</div>
+          <div class="test-option-desc">90 questions · 90 min</div>
+        </div>
+        <div class="test-option" id="opt-weak" onclick="selectMode('weak')">
+          <div class="test-option-icon">💪</div>
+          <div class="test-option-name">Weak Areas</div>
+          <div class="test-option-desc">Focus on missed topics</div>
+        </div>
+      </div>
+      <div id="domain-selector-wrap" class="hidden">
+        <div class="form-label" style="margin-bottom:0.5rem">Select Domain</div>
+        <select id="test-domain-select" style="width:100%;margin-bottom:1rem">
+          <option value="0">1.0 General Security Concepts</option>
+          <option value="1">2.0 Threats, Vulnerabilities & Mitigations</option>
+          <option value="2">3.0 Security Architecture</option>
+          <option value="3">4.0 Security Operations</option>
+          <option value="4">5.0 Security Program Management</option>
+        </select>
+      </div>
+      <button class="btn primary" onclick="startTest()" style="width:100%;padding:0.75rem;font-size:1rem">Start Test →</button>
+    </div>
+  </div>
+
+  <div id="test-active-screen" class="hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <div class="section-title" style="margin:0">Practice Test</div>
+      <div style="display:flex;gap:1rem;align-items:center">
+        <div id="test-timer" style="font-family:'Space Mono',monospace;font-size:0.9rem;color:var(--accent)">00:00</div>
+        <button class="btn danger" onclick="endTestEarly()">End Test</button>
+      </div>
+    </div>
+    <div class="test-progress" id="test-progress"></div>
+    <div class="question-block" id="question-block"></div>
+    <div style="display:flex;gap:1rem">
+      <button class="btn" id="prev-q-btn" onclick="prevQuestion()">← Previous</button>
+      <button class="btn primary" id="next-q-btn" onclick="nextQuestion()">Next →</button>
+    </div>
+  </div>
+
+  <div id="test-results-screen" class="hidden">
+    <div class="results-screen">
+      <div class="score-ring" id="score-ring">
+        <div class="score-val" id="final-score">0%</div>
+        <div class="score-label">Score</div>
+      </div>
+      <div id="pass-fail" style="font-size:1.2rem;font-weight:800;margin-bottom:0.5rem"></div>
+      <div id="score-detail" style="color:var(--text-dim);font-size:0.875rem;margin-bottom:1.5rem"></div>
+      <div class="domain-breakdown" id="domain-breakdown"></div>
+      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+        <button class="btn primary" onclick="reviewTest()">Review Answers</button>
+        <button class="btn" onclick="retakeTest()">Retake Test</button>
+        <button class="btn" onclick="switchPanel('test')">New Test</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AI TUTOR -->
+<div id="panel-tutor" class="panel">
+  <div class="ai-tutor-wrap">
+    <div>
+      <div class="section-title">Topics</div>
+      <div class="topic-list" id="topic-list"></div>
+    </div>
+    <div class="chat-area">
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input-row">
+        <textarea class="chat-input" id="chat-input" rows="2" placeholder="Ask anything about Security+..." onkeydown="handleChatKey(event)"></textarea>
+        <button class="chat-send" onclick="sendChat()">SEND</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESOURCES -->
+<div id="panel-resources" class="panel">
+  <div class="section-title">Free Study Resources</div>
+  <div class="resources-grid" style="margin-bottom:2rem">
+    <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-comptia-security-plus-course/" target="_blank" class="resource-card">
+      <div class="resource-type">Video Course · Free</div>
+      <div class="resource-name">Professor Messer SY0-701</div>
+      <div class="resource-desc">The gold standard free video course. Covers all exam objectives with clear explanations.</div>
+    </a>
+    <a href="https://www.youtube.com/@ProfessorMesser" target="_blank" class="resource-card">
+      <div class="resource-type">YouTube · Free</div>
+      <div class="resource-name">Professor Messer YouTube</div>
+      <div class="resource-desc">Full course playlist + practice exam breakdowns</div>
+    </a>
+    <a href="https://www.examcompass.com/comptia/security-plus-certification/free-security-plus-practice-tests" target="_blank" class="resource-card">
+      <div class="resource-type">Practice Tests · Free</div>
+      <div class="resource-name">ExamCompass</div>
+      <div class="resource-desc">Domain-specific free practice tests aligned to SY0-701</div>
+    </a>
+    <a href="https://quizlet.com/subject/security%2B-sy0-701/" target="_blank" class="resource-card">
+      <div class="resource-type">Flashcards · Free</div>
+      <div class="resource-name">Quizlet Sec+ Decks</div>
+      <div class="resource-desc">Hundreds of community-built flashcard decks for SY0-701</div>
+    </a>
+    <a href="https://www.reddit.com/r/CompTIA/" target="_blank" class="resource-card">
+      <div class="resource-type">Community · Free</div>
+      <div class="resource-name">r/CompTIA Subreddit</div>
+      <div class="resource-desc">Pass reports, study tips, resource recommendations from test takers</div>
+    </a>
+    <a href="https://github.com/PacktPublishing/CompTIA-Security-SY0-701-Exam-Guide" target="_blank" class="resource-card">
+      <div class="resource-type">GitHub · Free</div>
+      <div class="resource-name">CompTIA Sec+ Exam Guide</div>
+      <div class="resource-desc">Open source study notes and practice questions</div>
+    </a>
+  </div>
+
+  <div class="section-title">Paid / Premium Resources</div>
+  <div class="resources-grid" style="margin-bottom:2rem">
+    <a href="https://www.udemy.com/course/securityplus/" target="_blank" class="resource-card">
+      <div class="resource-type">Video Course · Paid</div>
+      <div class="resource-name">Jason Dion on Udemy</div>
+      <div class="resource-desc">Top-rated Udemy course with practice exams. Often on sale for $15–20.</div>
+    </a>
+    <a href="https://www.comptia.org/training/books/security-sy0-701-study-guide" target="_blank" class="resource-card">
+      <div class="resource-type">Official Book · Paid</div>
+      <div class="resource-name">CompTIA Official Study Guide</div>
+      <div class="resource-desc">Mike Chapple & David Seidl. The definitive text for SY0-701.</div>
+    </a>
+    <a href="https://www.darrill gibson.com/security-plus" target="_blank" class="resource-card">
+      <div class="resource-type">Practice Tests · Paid</div>
+      <div class="resource-name">Darril Gibson Practice Tests</div>
+      <div class="resource-desc">1000+ practice questions with detailed explanations</div>
+    </a>
+  </div>
+
+  <div class="section-title">Official CompTIA Resources</div>
+  <div class="resources-grid">
+    <a href="https://www.comptia.org/certifications/security" target="_blank" class="resource-card">
+      <div class="resource-type">Official</div>
+      <div class="resource-name">CompTIA Security+ Homepage</div>
+      <div class="resource-desc">Exam objectives (PDF download), testing info, voucher purchase</div>
+    </a>
+    <a href="https://comptia.org/content/docs/default-source/exam-objectives/comptia-security-sy0-701-exam-objectives-(5-0).pdf" target="_blank" class="resource-card">
+      <div class="resource-type">PDF · Free</div>
+      <div class="resource-name">SY0-701 Exam Objectives</div>
+      <div class="resource-desc">Official exam objectives document — the definitive study checklist</div>
+    </a>
+    <a href="https://www.comptia.org/testing/testing-options/take-online-exam" target="_blank" class="resource-card">
+      <div class="resource-type">Testing</div>
+      <div class="resource-name">Schedule Your Exam</div>
+      <div class="resource-desc">Pearson VUE online or testing center options</div>
+    </a>
+  </div>
+</div>
+
+<script>
+// ─── DATA ──────────────────────────────────────────────────────────────────
+const DOMAINS = [
+  "1.0 General Security Concepts",
+  "2.0 Threats, Vuln & Mitigations",
+  "3.0 Security Architecture",
+  "4.0 Security Operations",
+  "5.0 Security Program Management"
+];
+
+const BUILT_IN_CARDS = [
+  // Domain 0 - General Security
+  {front:"What is the CIA Triad?", back:"Confidentiality, Integrity, and Availability — the three core principles of information security.", domain:0},
+  {front:"What is the difference between authentication and authorization?", back:"Authentication verifies identity (who you are). Authorization determines what you're allowed to do (what you can access).", domain:0},
+  {front:"What is non-repudiation?", back:"The assurance that someone cannot deny the validity of something — e.g., a digital signature proves a message was sent by a specific person.", domain:0},
+  {front:"Define: Zero Trust Architecture", back:"A security model that requires strict identity verification for every user and device, regardless of whether they are inside or outside the network perimeter. 'Never trust, always verify.'", domain:0},
+  {front:"What is a honeypot?", back:"A decoy system designed to attract attackers and observe their techniques without exposing real production systems.", domain:0},
+  {front:"What is MFA (Multi-Factor Authentication)?", back:"Authentication using two or more factors from: something you know (password), something you have (token), something you are (biometric), somewhere you are (location).", domain:0},
+  {front:"What is the difference between symmetric and asymmetric encryption?", back:"Symmetric uses the same key to encrypt and decrypt. Asymmetric uses a public/private key pair — the public key encrypts, the private key decrypts.", domain:0},
+  {front:"What is PKI (Public Key Infrastructure)?", back:"A framework of policies, roles, and technologies to manage digital certificates and public key encryption. Enables secure communication via Certificate Authorities (CAs).", domain:0},
+  {front:"What is a digital certificate?", back:"An electronic document issued by a Certificate Authority that binds a public key to an entity's identity. Uses X.509 standard.", domain:0},
+  {front:"What is defense in depth?", back:"A layered security strategy where multiple controls are deployed so that if one fails, others still provide protection.", domain:0},
+
+  // Domain 1 - Threats
+  {front:"What is a phishing attack?", back:"A social engineering attack using fraudulent emails/messages to trick users into revealing credentials or installing malware.", domain:1},
+  {front:"What is ransomware?", back:"Malware that encrypts a victim's files and demands payment for the decryption key.", domain:1},
+  {front:"What is a SQL injection attack?", back:"An attack that inserts malicious SQL code into input fields to manipulate a database — allowing data theft, modification, or deletion.", domain:1},
+  {front:"What is a man-in-the-middle (MITM) attack?", back:"An attack where a threat actor secretly intercepts and potentially alters communication between two parties who believe they're communicating directly.", domain:1},
+  {front:"What is a DDoS attack?", back:"Distributed Denial of Service — overwhelming a target's resources with traffic from multiple compromised systems (botnet) to make it unavailable.", domain:1},
+  {front:"What is cross-site scripting (XSS)?", back:"An attack that injects malicious scripts into web pages viewed by other users, allowing cookie theft, session hijacking, or page redirection.", domain:1},
+  {front:"What is a buffer overflow attack?", back:"Writing more data to a buffer than it can hold, overwriting adjacent memory and potentially allowing arbitrary code execution.", domain:1},
+  {front:"What is an APT (Advanced Persistent Threat)?", back:"A sophisticated, long-term, targeted cyberattack — usually nation-state or well-funded group — that stealthily maintains unauthorized access to a network.", domain:1},
+  {front:"What is spear phishing?", back:"A targeted phishing attack directed at a specific individual or organization, using personalized information to increase credibility.", domain:1},
+  {front:"What is a supply chain attack?", back:"An attack that targets less-secure elements in a supply chain to compromise a larger, better-protected target (e.g., SolarWinds attack).", domain:1},
+  {front:"What is a rootkit?", back:"Malware designed to conceal its presence and provide continued privileged access to a computer, often modifying the OS kernel.", domain:1},
+  {front:"What is social engineering?", back:"Manipulating people into divulging confidential information or performing actions that compromise security — exploits human psychology rather than technical vulnerabilities.", domain:1},
+  {front:"What is CVE?", back:"Common Vulnerabilities and Exposures — a publicly available dictionary of known cybersecurity vulnerabilities, each with a unique identifier (e.g., CVE-2021-44228).", domain:1},
+  {front:"What is a zero-day vulnerability?", back:"A previously unknown software flaw that has no available patch — attackers can exploit it before vendors are aware of it.", domain:1},
+
+  // Domain 2 - Architecture
+  {front:"What is network segmentation?", back:"Dividing a network into smaller subnets/zones to limit lateral movement, contain breaches, and improve security control.", domain:2},
+  {front:"What is a DMZ (Demilitarized Zone)?", back:"A network segment between an internal trusted network and an untrusted external network (internet), hosting public-facing services like web servers.", domain:2},
+  {front:"What is SD-WAN?", back:"Software-Defined Wide Area Network — uses software to control network routing and management, enabling secure, flexible multi-site connectivity.", domain:2},
+  {front:"What is SASE (Secure Access Service Edge)?", back:"A cloud architecture combining network security functions (FWaaS, CASB, SWG, ZTNA) with WAN capabilities, delivered as a cloud service.", domain:2},
+  {front:"What is a VLAN?", back:"Virtual Local Area Network — logically segments a physical network to separate traffic, improving security and performance without additional hardware.", domain:2},
+  {front:"What is micro-segmentation?", back:"Fine-grained network segmentation at the workload level, often used in virtualized environments and data centers to enforce least-privilege network access.", domain:2},
+  {front:"What is a WAF (Web Application Firewall)?", back:"A firewall specifically designed to monitor, filter, and block HTTP/HTTPS traffic to/from web applications, protecting against XSS, SQLi, and other web attacks.", domain:2},
+  {front:"What is IDS vs IPS?", back:"IDS (Intrusion Detection System) monitors and alerts on suspicious traffic. IPS (Intrusion Prevention System) can also actively block/drop malicious traffic.", domain:2},
+
+  // Domain 3 - Operations
+  {front:"What is SIEM?", back:"Security Information and Event Management — aggregates and correlates log data from across an organization to detect threats and support incident response.", domain:3},
+  {front:"What is vulnerability scanning vs penetration testing?", back:"Vulnerability scanning is automated discovery of known weaknesses. Penetration testing is a manual, simulated attack to actively exploit vulnerabilities.", domain:3},
+  {front:"What is the incident response lifecycle?", back:"Preparation → Identification → Containment → Eradication → Recovery → Lessons Learned (PICERL). NIST SP 800-61 framework.", domain:3},
+  {front:"What is a SOAR platform?", back:"Security Orchestration, Automation and Response — automates repetitive security tasks, orchestrates tool workflows, and accelerates incident response.", domain:3},
+  {front:"What is chain of custody?", back:"A documented process that tracks the handling of digital evidence from collection through analysis to court — critical for legal admissibility.", domain:3},
+  {front:"What is threat hunting?", back:"Proactively searching through networks and endpoints to detect and isolate advanced threats that evade existing security tools.", domain:3},
+  {front:"What is EDR (Endpoint Detection and Response)?", back:"Security software that continuously monitors endpoints for threats, records activity, and enables rapid response to detected incidents.", domain:3},
+  {front:"What is least privilege?", back:"Granting users and systems only the minimum access rights needed to perform their job functions — reduces attack surface.", domain:3},
+  {front:"What is patch management?", back:"The process of identifying, acquiring, testing, and applying software updates to fix vulnerabilities and improve security.", domain:3},
+
+  // Domain 4 - Program Management
+  {front:"What is a BCP (Business Continuity Plan)?", back:"A documented plan to maintain critical business functions during and after a disaster or disruption.", domain:4},
+  {front:"What is RTO vs RPO?", back:"RTO (Recovery Time Objective): max acceptable downtime. RPO (Recovery Point Objective): max acceptable data loss measured in time.", domain:4},
+  {front:"What is GDPR?", back:"General Data Protection Regulation — EU law governing data privacy and protection of EU citizens' personal data. Heavy fines for non-compliance.", domain:4},
+  {front:"What is a data classification policy?", back:"A policy that categorizes data by sensitivity (e.g., public, internal, confidential, restricted) to ensure appropriate handling and protection.", domain:4},
+  {front:"What is HIPAA?", back:"Health Insurance Portability and Accountability Act — US law requiring protection of patients' Protected Health Information (PHI).", domain:4},
+  {front:"What is a risk register?", back:"A document that records identified risks, their likelihood, impact, risk owner, and mitigation strategies.", domain:4},
+  {front:"What is quantitative vs qualitative risk analysis?", back:"Quantitative uses numerical values (ALE = SLE × ARO). Qualitative uses descriptive scales (high/medium/low) based on expert judgment.", domain:4},
+  {front:"What is SLE (Single Loss Expectancy)?", back:"The expected monetary loss from a single occurrence of a risk event. SLE = Asset Value × Exposure Factor.", domain:4},
+];
+
+let userCards = JSON.parse(localStorage.getItem('sec_cards') || '[]');
+let stats = JSON.parse(localStorage.getItem('sec_stats') || '{"studied":0,"tests":0,"scores":[],"created":0}');
+
+let allCards = [...BUILT_IN_CARDS, ...userCards];
+let filteredCards = [...allCards];
+let currentCardIdx = 0;
+let isFlipped = false;
+
+// Test state
+let testMode = 'quick';
+let testQuestions = [];
+let currentQIdx = 0;
+let userAnswers = {};
+let testStartTime = null;
+let timerInterval = null;
+let testDone = false;
+
+// ─── NAVIGATION ─────────────────────────────────────────────────────────────
+function switchPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event && event.target && event.target.classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    if (t.textContent.toLowerCase().includes(name.substring(0,4).toLowerCase())) t.classList.add('active');
+  });
+  if (name === 'flashcards') renderCurrentCard();
+  if (name === 'tutor') initTutor();
+  updateStats();
+}
+
+// ─── STATS ───────────────────────────────────────────────────────────────────
+function updateStats() {
+  document.getElementById('stat-studied').textContent = stats.studied;
+  document.getElementById('stat-tests').textContent = stats.tests;
+  document.getElementById('stat-created').textContent = userCards.length + BUILT_IN_CARDS.length;
+  if (stats.scores.length) {
+    const avg = Math.round(stats.scores.reduce((a,b)=>a+b,0)/stats.scores.length);
+    document.getElementById('stat-avg').textContent = avg + '%';
+  }
+}
+
+// ─── FLASHCARDS ─────────────────────────────────────────────────────────────
+function filterFlashcards() {
+  const val = document.getElementById('fc-domain-filter').value;
+  allCards = [...BUILT_IN_CARDS, ...userCards];
+  filteredCards = val === 'all' ? [...allCards] : allCards.filter(c => c.domain == val);
+  currentCardIdx = 0;
+  isFlipped = false;
+  renderCurrentCard();
+}
+
+function renderCurrentCard() {
+  if (!filteredCards.length) {
+    document.getElementById('card-front-text').textContent = 'No cards in this domain.';
+    document.getElementById('card-back-text').textContent = '—';
+    document.getElementById('card-counter').textContent = '0 cards';
+    return;
+  }
+  const card = filteredCards[currentCardIdx];
+  document.getElementById('card-front-text').textContent = card.front;
+  document.getElementById('card-back-text').textContent = card.back;
+  document.getElementById('card-domain-badge').textContent = DOMAINS[card.domain];
+  document.getElementById('card-counter').textContent = `Card ${currentCardIdx+1} of ${filteredCards.length}`;
+  const fc = document.getElementById('flashcard');
+  fc.classList.remove('flipped');
+  isFlipped = false;
+}
+
+function flipCard() {
+  const fc = document.getElementById('flashcard');
+  isFlipped = !isFlipped;
+  fc.classList.toggle('flipped', isFlipped);
+  if (isFlipped) { stats.studied++; localStorage.setItem('sec_stats', JSON.stringify(stats)); updateStats(); }
+}
+
+function nextCard() {
+  currentCardIdx = (currentCardIdx + 1) % filteredCards.length;
+  renderCurrentCard();
+}
+
+function prevCard() {
+  currentCardIdx = (currentCardIdx - 1 + filteredCards.length) % filteredCards.length;
+  renderCurrentCard();
+}
+
+function shuffleDeck() {
+  for (let i = filteredCards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i+1));
+    [filteredCards[i], filteredCards[j]] = [filteredCards[j], filteredCards[i]];
+  }
+  currentCardIdx = 0;
+  renderCurrentCard();
+}
+
+function resetDeck() {
+  filterFlashcards();
+}
+
+function markCard(knew) {
+  nextCard();
+}
+
+function toggleCreateForm() {
+  const f = document.getElementById('create-form');
+  f.classList.toggle('hidden');
+}
+
+function saveNewCard() {
+  const front = document.getElementById('new-front').value.trim();
+  const back = document.getElementById('new-back').value.trim();
+  const domain = parseInt(document.getElementById('new-domain').value);
+  if (!front || !back) return alert('Please fill in both sides of the card.');
+  userCards.push({front, back, domain});
+  localStorage.setItem('sec_cards', JSON.stringify(userCards));
+  allCards = [...BUILT_IN_CARDS, ...userCards];
+  filteredCards = [...allCards];
+  document.getElementById('new-front').value = '';
+  document.getElementById('new-back').value = '';
+  toggleCreateForm();
+  currentCardIdx = filteredCards.length - 1;
+  renderCurrentCard();
+  updateStats();
+}
+
+function startDomainFlash(domainIdx) {
+  switchPanel('flashcards');
+  document.getElementById('fc-domain-filter').value = domainIdx;
+  filterFlashcards();
+  setTimeout(() => {
+    document.querySelectorAll('.nav-tab').forEach(t => {
+      if (t.textContent.toLowerCase().includes('flash')) t.classList.add('active');
+      else t.classList.remove('active');
+    });
+  }, 50);
+}
+
+async function generateAICards() {
+  const btn = document.getElementById('ai-gen-btn');
+  btn.textContent = '⏳ Generating...';
+  btn.disabled = true;
+  const domainVal = document.getElementById('fc-domain-filter').value;
+  const domainName = domainVal === 'all' ? 'all Security+ domains' : DOMAINS[parseInt(domainVal)];
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: `Generate 5 CompTIA Security+ SY0-701 flashcards for: ${domainName}.
+Return ONLY a JSON array, no markdown, no explanation:
+[{"front":"term or question","back":"definition or answer","domain":${domainVal === 'all' ? 0 : domainVal}}]
+Make them exam-relevant, concise, and factual.`
+        }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content.map(i => i.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    const cards = JSON.parse(clean);
+    cards.forEach(c => {
+      if (c.front && c.back && c.domain !== undefined) {
+        userCards.push(c);
+      }
+    });
+    localStorage.setItem('sec_cards', JSON.stringify(userCards));
+    filterFlashcards();
+    btn.textContent = `✦ Generated ${cards.length} cards!`;
+    setTimeout(() => { btn.textContent = '✦ AI Generate Cards'; btn.disabled = false; }, 2500);
+  } catch(e) {
+    btn.textContent = '✦ AI Generate Cards';
+    btn.disabled = false;
+    alert('Could not generate cards. Please try again.');
+  }
+}
+
+// ─── PRACTICE TEST ─────────────────────────────────────────────────────────
+const QUESTION_BANK = [
+  {q:"Which cryptographic algorithm provides the BEST forward secrecy?",choices:["RSA","DH","ECDHE","AES-256"],correct:2,domain:0,exp:"ECDHE (Elliptic Curve Diffie-Hellman Ephemeral) generates new keys for each session, ensuring past sessions remain secure even if long-term keys are compromised — this is forward secrecy."},
+  {q:"An attacker intercepts traffic between a client and server by responding to ARP requests with their own MAC address. What type of attack is this?",choices:["DNS poisoning","ARP spoofing","VLAN hopping","MAC flooding"],correct:1,domain:1,exp:"ARP spoofing (or ARP poisoning) involves sending fake ARP messages to link the attacker's MAC with a legitimate IP, enabling MITM attacks on local networks."},
+  {q:"A security analyst finds that an application is vulnerable because it trusts user-supplied input for file paths. What vulnerability does this describe?",choices:["SQL injection","Directory traversal","Buffer overflow","CSRF"],correct:1,domain:1,exp:"Directory traversal (path traversal) exploits insufficient input validation to access files outside the intended directory using sequences like '../../../'."},
+  {q:"Which of the following BEST describes the purpose of a SIEM?",choices:["Block malicious traffic at the perimeter","Aggregate and correlate security events across the organization","Encrypt data in transit","Manage user identities and access rights"],correct:1,domain:3,exp:"SIEM collects, aggregates, and correlates log data from multiple sources to detect threats and support incident response. It provides centralized visibility."},
+  {q:"What is the PRIMARY purpose of a Certificate Revocation List (CRL)?",choices:["List of trusted CAs","List of certificates that have been invalidated before expiry","List of pending certificate requests","List of algorithm strengths"],correct:1,domain:0,exp:"A CRL is maintained by a CA and lists certificates that have been revoked (e.g., due to compromise or personnel changes) before their scheduled expiration."},
+  {q:"An organization wants to ensure that if an attacker compromises one VLAN, they cannot access other VLANs. What technique BEST addresses this?",choices:["NAT","VLAN hopping prevention via switch security","SSL inspection","MAC filtering"],correct:1,domain:2,exp:"Preventing VLAN hopping (via switch port security, disabling DTP, using dedicated native VLANs) ensures attackers on one VLAN cannot jump to another."},
+  {q:"Which risk calculation formula is CORRECT?",choices:["Risk = Threat × Asset Value","Risk = Vulnerability × Threat × Impact","ALE = SLE + ARO","Risk = Control × Exposure Factor"],correct:1,domain:4,exp:"Risk is calculated as Vulnerability × Threat × Impact (or likelihood × impact). ALE (Annual Loss Expectancy) = SLE × ARO is a separate quantitative formula."},
+  {q:"A user receives an email appearing to be from their bank, asking them to verify account details. What attack type is this?",choices:["Vishing","Smishing","Phishing","Pharming"],correct:2,domain:1,exp:"Phishing is a social engineering attack delivered via email. Vishing uses voice/calls, smishing uses SMS, and pharming redirects users from legitimate sites to fake ones."},
+  {q:"Which protocol provides secure network access control by authenticating devices before allowing them on the network?",choices:["RADIUS","802.1X","LDAP","TACACS+"],correct:1,domain:0,exp:"IEEE 802.1X is a port-based Network Access Control (NAC) standard that requires authentication before granting network access, commonly using EAP methods."},
+  {q:"What is the MAIN difference between a vulnerability scan and a penetration test?",choices:["Vulnerability scans require more expertise","Penetration tests actively exploit vulnerabilities; scans only identify them","Penetration tests are fully automated","Vulnerability scans can only test web applications"],correct:1,domain:3,exp:"Vulnerability scanning passively identifies known weaknesses. Penetration testing actively exploits them to determine real-world impact — it's manual and simulated hacking."},
+  {q:"Which of the following BEST describes a watering hole attack?",choices:["Attacker floods a server with requests","Attacker compromises a site frequented by target users","Attacker poisons the DNS resolver","Attacker intercepts VPN traffic"],correct:1,domain:1,exp:"A watering hole attack compromises a website frequently visited by the target group, allowing the attacker to infect visitors when they access the trusted site."},
+  {q:"An administrator wants to ensure that no single administrator can complete a sensitive transaction alone. Which principle applies?",choices:["Least privilege","Separation of duties","Need to know","Job rotation"],correct:1,domain:4,exp:"Separation of duties (SoD) divides critical tasks among multiple people to prevent fraud, error, or abuse of power. It requires collusion to bypass."},
+  {q:"Which encryption mode provides BOTH confidentiality AND authentication for data?",choices:["ECB","CBC","CTR","GCM"],correct:3,domain:0,exp:"Galois/Counter Mode (GCM) is an AEAD (Authenticated Encryption with Associated Data) mode that provides both confidentiality and integrity/authentication in one operation."},
+  {q:"What type of malware disguises itself as a legitimate program to trick users into installing it?",choices:["Worm","Rootkit","Trojan","Adware"],correct:2,domain:1,exp:"A Trojan horse (Trojan) masquerades as legitimate software while hiding malicious functionality. Unlike viruses/worms, it does not self-replicate."},
+  {q:"An attacker sends a forged email appearing to be from the CEO, asking the CFO to transfer funds immediately. What is this attack called?",choices:["Spear phishing","Business Email Compromise (BEC)","Whaling","Vishing"],correct:1,domain:1,exp:"Business Email Compromise (BEC) specifically involves impersonating executives or vendors to authorize fraudulent financial transfers. Also called CEO fraud."},
+  {q:"Which framework is commonly used for incident response?",choices:["NIST SP 800-53","NIST SP 800-61","ISO 27001","COBIT"],correct:1,domain:3,exp:"NIST SP 800-61 (Computer Security Incident Handling Guide) defines the incident response lifecycle: Preparation, Detection, Containment, Eradication, Recovery, Lessons Learned."},
+  {q:"What does MTTR measure?",choices:["Maximum Tolerable Time to Respond","Mean Time To Recover/Repair","Minimum Threat Tolerance Rating","Maximum Threat Transfer Risk"],correct:1,domain:4,exp:"MTTR (Mean Time To Recover or Repair) measures the average time required to repair a system and restore service after a failure or incident."},
+  {q:"Which of the following is an example of a detective control?",choices:["Firewall","Security awareness training","CCTV monitoring","Encryption"],correct:2,domain:0,exp:"Detective controls identify and detect security incidents after they occur. CCTV, IDS, audit logs, and SIEM are detective controls. Firewalls are preventive; training is administrative."},
+  {q:"An attacker exploits a race condition in a multi-threaded application to gain elevated privileges. What type of vulnerability is this?",choices:["Buffer overflow","TOCTOU (Time of Check to Time of Use)","Integer overflow","Format string"],correct:1,domain:1,exp:"TOCTOU is a race condition where an attacker changes a resource between the time it's checked and the time it's used, exploiting the timing gap to gain unauthorized access."},
+  {q:"Which hashing algorithm is currently recommended for password storage?",choices:["MD5","SHA-1","bcrypt","SHA-256"],correct:2,domain:0,exp:"bcrypt (and scrypt, Argon2) are designed for password hashing — they're intentionally slow, include salts, and are resistant to brute-force/rainbow table attacks. MD5 and SHA-1 are broken."},
+  {q:"What is the purpose of a DMZ in network architecture?",choices:["To encrypt all internal traffic","To host public-facing services in a semi-trusted zone between internet and internal network","To store sensitive data","To authenticate remote users"],correct:1,domain:2,exp:"A DMZ (Demilitarized Zone) is a network segment that exposes external-facing services (web, mail) while protecting the internal network — acting as a buffer zone."},
+  {q:"Which of the following BEST describes threat intelligence?",choices:["Automated patching of known vulnerabilities","Evidence-based knowledge about current or emerging threats","List of all network vulnerabilities","Daily backup schedule"],correct:1,domain:3,exp:"Threat intelligence is evidence-based knowledge about threats and threat actors — including TTPs, indicators of compromise, and context — used to inform security decisions."},
+  {q:"An employee leaves a company but their Active Directory account remains active for two weeks. What policy violation occurred?",choices:["Separation of duties","Account lockout policy","Offboarding / identity lifecycle management","Password complexity policy"],correct:2,domain:3,exp:"Proper offboarding requires immediate deprovisioning of access when an employee leaves. Failing to do so violates identity lifecycle management and leaves a security gap."},
+  {q:"What is the PRIMARY security benefit of using a Hardware Security Module (HSM)?",choices:["Speeds up encryption operations only","Stores cryptographic keys in tamper-resistant hardware","Prevents network-based attacks","Provides multi-factor authentication"],correct:1,domain:0,exp:"An HSM is a physical device that securely stores cryptographic keys in tamper-resistant hardware, preventing key extraction even if the server is compromised."},
+  {q:"Which type of assessment involves sending simulated phishing emails to employees?",choices:["Red team exercise","Vulnerability assessment","Social engineering assessment","Tabletop exercise"],correct:2,domain:3,exp:"Sending simulated phishing emails is a social engineering assessment (specifically a phishing simulation) that tests employee awareness and susceptibility."},
+  {q:"What is a key characteristic of a rootkit?",choices:["It replicates across network shares","It hides its presence on infected systems","It only affects mobile devices","It encrypts user files for ransom"],correct:1,domain:1,exp:"A rootkit's defining characteristic is concealment — it modifies the OS to hide itself, other malware, or attacker activity from detection tools and administrators."},
+  {q:"Which protocol provides secure email communication by encrypting and digitally signing messages?",choices:["POP3S","S/MIME","SMTPS","IMAPS"],correct:1,domain:0,exp:"S/MIME (Secure/Multipurpose Internet Mail Extensions) provides end-to-end email encryption and digital signatures using X.509 certificates."},
+  {q:"What does the 'integrity' component of the CIA triad ensure?",choices:["Only authorized users can access data","Data is available when needed","Data has not been tampered with or altered","Data is encrypted"],correct:2,domain:0,exp:"Integrity ensures data is accurate and has not been modified by unauthorized parties. Controls include hashing, digital signatures, checksums, and access controls."},
+  {q:"An attacker uses a previously unknown vulnerability in a web browser to compromise systems before a patch is available. This is called a:",choices:["Logic bomb","Zero-day exploit","Worm","Backdoor"],correct:1,domain:1,exp:"A zero-day exploit targets a vulnerability that is unknown to the vendor and has no patch. The term 'zero-day' refers to having zero days of protection."},
+  {q:"Which type of penetration testing provides the tester with no prior knowledge of the target environment?",choices:["White box","Gray box","Black box","Crystal box"],correct:2,domain:3,exp:"Black box testing simulates an external attacker with no inside knowledge. White box provides full information; gray box provides partial. Black box is most realistic for external threats."},
+];
+
+let currentTestMode = 'quick';
+
+function selectMode(mode) {
+  currentTestMode = mode;
+  document.querySelectorAll('.test-option').forEach(o => o.classList.remove('selected'));
+  document.getElementById('opt-' + mode).classList.add('selected');
+  document.getElementById('domain-selector-wrap').classList.toggle('hidden', mode !== 'domain');
+}
+
+function startTest() {
+  let pool = [...QUESTION_BANK];
+  let count = 15;
+  if (currentTestMode === 'domain') {
+    const d = parseInt(document.getElementById('test-domain-select').value);
+    pool = QUESTION_BANK.filter(q => q.domain === d);
+    count = Math.min(25, pool.length);
+  } else if (currentTestMode === 'full') {
+    count = Math.min(90, pool.length);
+  } else if (currentTestMode === 'weak') {
+    count = 20;
+  }
+  // Shuffle and pick
+  for (let i = pool.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [pool[i],pool[j]] = [pool[j],pool[i]];
+  }
+  testQuestions = pool.slice(0, count);
+  currentQIdx = 0;
+  userAnswers = {};
+  testDone = false;
+
+  document.getElementById('test-setup-screen').classList.add('hidden');
+  document.getElementById('test-active-screen').classList.remove('hidden');
+  document.getElementById('test-results-screen').classList.add('hidden');
+
+  renderTestProgress();
+  renderQuestion();
+  startTimer();
+}
+
+function startTimer() {
+  testStartTime = Date.now();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - testStartTime) / 1000);
+    const m = String(Math.floor(elapsed/60)).padStart(2,'0');
+    const s = String(elapsed % 60).padStart(2,'0');
+    document.getElementById('test-timer').textContent = m + ':' + s;
+  }, 1000);
+}
+
+function renderTestProgress() {
+  const wrap = document.getElementById('test-progress');
+  wrap.innerHTML = testQuestions.map((q, i) => {
+    let cls = 'test-dot';
+    if (i === currentQIdx) cls += ' current';
+    else if (userAnswers[i] !== undefined) cls += testDone ? (userAnswers[i] === q.correct ? ' correct' : ' wrong') : ' answered';
+    return `<div class="${cls}" onclick="jumpToQ(${i})"></div>`;
+  }).join('');
+}
+
+function jumpToQ(idx) {
+  currentQIdx = idx;
+  renderQuestion();
+  renderTestProgress();
+}
+
+function renderQuestion() {
+  const q = testQuestions[currentQIdx];
+  const answered = userAnswers[currentQIdx] !== undefined;
+  let html = `
+    <div class="question-num">Question ${currentQIdx+1} of ${testQuestions.length} · ${DOMAINS[q.domain]}</div>
+    <div class="question-text">${q.q}</div>
+    <div class="answer-choices">
+      ${q.choices.map((c,i) => {
+        let cls = 'answer-choice';
+        if (answered) {
+          if (i === q.correct) cls += ' correct';
+          else if (i === userAnswers[currentQIdx]) cls += ' wrong';
+        } else if (i === userAnswers[currentQIdx]) cls += ' selected';
+        const disabled = answered ? '' : `onclick="selectAnswer(${i})"`;
+        return `<div class="${cls}" ${disabled}><span class="choice-letter">${String.fromCharCode(65+i)}.</span>${c}</div>`;
+      }).join('')}
+    </div>
+  `;
+  if (answered) {
+    html += `<div class="explanation"><strong>Explanation:</strong> ${q.exp}</div>`;
+  }
+  document.getElementById('question-block').innerHTML = html;
+  document.getElementById('prev-q-btn').style.opacity = currentQIdx === 0 ? '0.4' : '1';
+  const isLast = currentQIdx === testQuestions.length - 1;
+  const nextBtn = document.getElementById('next-q-btn');
+  nextBtn.textContent = isLast ? 'Finish Test' : 'Next →';
+  nextBtn.onclick = isLast ? showResults : nextQuestion;
+}
+
+function selectAnswer(idx) {
+  userAnswers[currentQIdx] = idx;
+  renderQuestion();
+  renderTestProgress();
+}
+
+function prevQuestion() {
+  if (currentQIdx > 0) { currentQIdx--; renderQuestion(); renderTestProgress(); }
+}
+
+function nextQuestion() {
+  if (currentQIdx < testQuestions.length - 1) { currentQIdx++; renderQuestion(); renderTestProgress(); }
+  else showResults();
+}
+
+function endTestEarly() {
+  if (confirm('End test now and see results?')) showResults();
+}
+
+function showResults() {
+  clearInterval(timerInterval);
+  testDone = true;
+  const total = testQuestions.length;
+  const correct = testQuestions.filter((q,i) => userAnswers[i] === q.correct).length;
+  const pct = Math.round((correct/total)*100);
+
+  stats.tests++;
+  stats.scores.push(pct);
+  localStorage.setItem('sec_stats', JSON.stringify(stats));
+  updateStats();
+
+  document.getElementById('test-active-screen').classList.add('hidden');
+  document.getElementById('test-results-screen').classList.remove('hidden');
+
+  // Score ring
+  const ring = document.getElementById('score-ring');
+  ring.style.setProperty('--score-pct', pct + '%');
+  ring.style.background = `conic-gradient(${pct >= 75 ? 'var(--green)' : 'var(--red)'} 0%, ${pct >= 75 ? 'var(--green)' : 'var(--red)'} ${pct}%, var(--surface2) ${pct}%)`;
+  document.getElementById('final-score').textContent = pct + '%';
+  document.getElementById('pass-fail').textContent = pct >= 75 ? '✓ PASSING SCORE' : '✗ BELOW PASSING';
+  document.getElementById('pass-fail').style.color = pct >= 75 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('score-detail').textContent = `${correct} of ${total} correct · Passing is 75% (750/1000)`;
+
+  // Domain breakdown
+  const domainResults = {};
+  testQuestions.forEach((q,i) => {
+    if (!domainResults[q.domain]) domainResults[q.domain] = {correct:0,total:0};
+    domainResults[q.domain].total++;
+    if (userAnswers[i] === q.correct) domainResults[q.domain].correct++;
+  });
+  let bHtml = '';
+  Object.entries(domainResults).forEach(([d,r]) => {
+    const dp = Math.round((r.correct/r.total)*100);
+    bHtml += `<div class="breakdown-card">
+      <div class="breakdown-name">${DOMAINS[d]}</div>
+      <div class="breakdown-score" style="color:${dp>=75?'var(--green)':'var(--red)'}">${dp}%</div>
+      <div style="font-size:0.72rem;color:var(--text-dim)">${r.correct}/${r.total} correct</div>
+    </div>`;
+  });
+  document.getElementById('domain-breakdown').innerHTML = bHtml;
+}
+
+function reviewTest() {
+  testDone = true;
+  currentQIdx = 0;
+  document.getElementById('test-results-screen').classList.add('hidden');
+  document.getElementById('test-active-screen').classList.remove('hidden');
+  renderTestProgress();
+  renderQuestion();
+}
+
+function retakeTest() {
+  startTest();
+}
+
+// ─── AI TUTOR ───────────────────────────────────────────────────────────────
+const TUTOR_TOPICS = [
+  "Cryptography Basics",
+  "PKI & Certificates",
+  "Network Security",
+  "Firewalls & IDS/IPS",
+  "Threat Types & Malware",
+  "Social Engineering",
+  "Incident Response",
+  "Risk Management",
+  "Access Control",
+  "Cloud Security",
+  "Wireless Security",
+  "Vulnerability Management",
+  "Identity & IAM",
+  "Compliance & Governance",
+  "Forensics & SIEM",
+];
+
+let chatHistory = [];
+
+function initTutor() {
+  const list = document.getElementById('topic-list');
+  if (list.innerHTML) return;
+  list.innerHTML = TUTOR_TOPICS.map((t,i) =>
+    `<div class="topic-item" onclick="startTopic('${t}', this)">${t}</div>`
+  ).join('');
+  if (!document.getElementById('chat-messages').innerHTML) {
+    appendMsg('ai', "👋 Hi! I'm your Security+ AI tutor. Ask me anything about the SY0-701 exam — concepts, mnemonics, exam tips, or click a topic on the left to dive in.");
+  }
+}
+
+function startTopic(topic, el) {
+  document.querySelectorAll('.topic-item').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('chat-input').value = `Explain ${topic} for the Security+ exam with key concepts and exam tips.`;
+  sendChat();
+}
+
+function handleChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+}
+
+function appendMsg(role, text) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.innerHTML = `<div class="msg-name">${role === 'ai' ? '✦ AI Tutor' : 'You'}</div><div class="msg-bubble">${text.replace(/\n/g,'<br>')}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function appendLoading() {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg ai'; div.id = 'loading-msg';
+  div.innerHTML = `<div class="msg-name">✦ AI Tutor</div><div class="msg-bubble"><div class="loading-dots"><span></span><span></span><span></span></div></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  appendMsg('user', msg);
+  chatHistory.push({role:'user', content: msg});
+  appendLoading();
+
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: "You are an expert CompTIA Security+ (SY0-701) tutor. Give clear, exam-focused answers. Use mnemonics and real-world analogies. When relevant, mention which exam domain a topic falls under. Be concise but thorough. Format responses with line breaks for readability.",
+        messages: chatHistory
+      })
+    });
+    const data = await resp.json();
+    const reply = data.content.map(i=>i.text||'').join('');
+    chatHistory.push({role:'assistant', content: reply});
+    document.getElementById('loading-msg')?.remove();
+    appendMsg('ai', reply);
+  } catch(e) {
+    document.getElementById('loading-msg')?.remove();
+    appendMsg('ai', 'Sorry, I encountered an error. Please try again.');
+  }
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+filterFlashcards();
+updateStats();
+</script>
+</body>
+</html>
